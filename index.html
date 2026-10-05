@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121010">
+<title>Tirage au sort · Emy Black Cat</title>
+<script>
+  // ⬇️ SEULE LIGNE À MODIFIER : colle ton lien qui finit par /exec entre les guillemets ⬇️
+  const LIEN_APPLI = "COLLE_ICI_TON_LIEN_EXEC";
+</script>
+<style>
+  :root{--ink:#121010;--ink-2:#1d1918;--ink-3:#2a2422;--bone:#efe6d2;--bone-dim:#a99d88;--gold:#e8b23a}
+  html,body{margin:0;height:100%;background:var(--ink);color:var(--bone);font:16px/1.5 system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--ink)}
+  .attente{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--bone-dim);text-align:center;padding:24px}
+  .roue{width:42px;height:42px;border-radius:50%;border:4px solid var(--ink-3);border-top-color:var(--gold);animation:tourne 1s linear infinite}
+  @keyframes tourne{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.roue{animation:none}}
+  .musique{position:fixed;left:14px;bottom:max(14px, env(safe-area-inset-bottom));z-index:5;
+    display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border-radius:999px;
+    border:2px solid var(--ink-3);background:rgba(29,25,24,.92);color:var(--bone);font:700 14px system-ui,sans-serif;cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.5)}
+  .musique[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+  .musique .barres{display:flex;gap:2px;align-items:flex-end;height:14px}
+  .musique .barres i{width:3px;background:currentColor;height:4px;border-radius:1px}
+  .musique[aria-pressed="true"] .barres i{animation:vu .8s ease-in-out infinite alternate}
+  .musique .barres i:nth-child(2){animation-delay:.2s}.musique .barres i:nth-child(3){animation-delay:.4s}
+  @keyframes vu{from{height:3px}to{height:14px}}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+  <div class="attente" id="attente"><div class="roue"></div><div id="texteAttente">Chargement du tirage…</div></div>
+
+  <!-- credentialless : l'appli s'ouvre sans les comptes Google du téléphone (évite « Impossible d'ouvrir le fichier ») -->
+  <iframe id="appli" credentialless title="Tirage au sort" allow="clipboard-write; autoplay" referrerpolicy="no-referrer"></iframe>
+
+  <!-- Musique de fond : mets un fichier « musique.mp3 » libre de droits à côté de ce fichier. Sans fichier, le bouton n'apparaît pas. -->
+  <audio id="audio" src="musique.mp3" loop preload="none"></audio>
+  <button class="musique" id="btnMusique" type="button" aria-pressed="false" hidden>
+    <span class="barres" aria-hidden="true"><i></i><i></i><i></i></span><span id="txtMusique">Musique</span>
+  </button>
+
+<script>
+  (function () {
+    const frame = document.getElementById('appli');
+    const attente = document.getElementById('attente');
+    if (!/^https:\/\/script\.google\.com\/.+\/exec/.test(LIEN_APPLI)) {
+      document.getElementById('texteAttente').textContent = 'Lien de l’appli manquant : ouvre index.html et colle ton lien /exec à la place de COLLE_ICI_TON_LIEN_EXEC.';
+      attente.querySelector('.roue').hidden = true;
+      return;
+    }
+    frame.src = LIEN_APPLI;
+    frame.addEventListener('load', () => { attente.hidden = true; });
+    setTimeout(() => { attente.hidden = true; }, 8000);
+
+    // Musique : le bouton n'apparaît que si musique.mp3 existe
+    const audio = document.getElementById('audio');
+    const btn = document.getElementById('btnMusique');
+    fetch('musique.mp3', { method: 'HEAD' }).then((r) => { if (r.ok) btn.hidden = false; }).catch(() => {});
+    audio.volume = 0.35;
+    btn.addEventListener('click', async () => {
+      if (audio.paused) {
+        try { await audio.play(); btn.setAttribute('aria-pressed', 'true'); document.getElementById('txtMusique').textContent = 'Couper'; }
+        catch (e) { /* lecture refusée par le navigateur */ }
+      } else {
+        audio.pause(); btn.setAttribute('aria-pressed', 'false'); document.getElementById('txtMusique').textContent = 'Musique';
+      }
+    });
+  })();
+</script>
+</body>
+</html>
